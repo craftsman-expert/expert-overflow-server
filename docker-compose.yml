@@ -1,0 +1,168 @@
+version: "3.8"
+
+services:
+
+  php:
+    container_name: expert-overflow-server-php
+    image: expert-overflow-server/php:dev
+    restart: on-failure
+    build:
+      context: .
+      target: dev
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - .:/srv/www:cache
+      - symfony_var:/srv/www/var
+      - symfony_vendor:/srv/www/vendor
+    depends_on:
+      - postgres
+      - redis
+    environment:
+#      PHP_INI_SCAN_DIR: ":/usr/local/etc/php/custom.d"
+      XDEBUG_MODE: "debug"
+      XDEBUG_SESSION: "1"
+      PHP_IDE_CONFIG: "serverName=expert-overflow.loc"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+#  consumer-low:
+#    container_name: expert-overflow-server.consumer-low
+#    restart: always
+#    image: expert-overflow-server/php:dev
+#    build:
+#      context: .
+#      target: dev
+#      dockerfile: docker/php/Dockerfile
+#    entrypoint: [ "sh", "docker/php/message_async_low.sh" ]
+#    depends_on:
+#      - php
+#    volumes:
+#      - .:/srv/www:cache
+#      - /srv/www/var
+#      - /srv/www/vendor
+#    environment:
+#      MESSENGER_CONSUMER_NAME: 'consume_low'
+#      # XDEBUG_CONFIG: "client_host=8.tcp.ngrok.io client_port=16940 mode=debug idekey=PHPSTORM"
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: "1m"
+#        max-file: "1"
+
+  postgres:
+    container_name: expert-overflow-server-postgres
+    image: expert-overflow-server-postgres:dev
+    restart: on-failure
+    build:
+      context: docker/postgres
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:delegated
+    environment:
+      POSTGRES_DB: "expert_overflow"
+      POSTGRES_USER: "expert_overflow"
+      POSTGRES_PASSWORD: "dW2pI8wD8xdI6n"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  redis:
+    container_name: expert-overflow-server-redis
+    image: expert-overflow-server-redis:dev
+    build:
+      context: ./docker/redis
+      dockerfile: Dockerfile
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  nginx:
+    container_name: expert-overflow-server-nginx
+    image: expert-overflow-server-nginx:dev
+    restart: on-failure
+    build:
+      context: docker/nginx
+      target: dev
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    volumes:
+      - .:/srv/www:cache,r
+      - ./docker/nginx/sites-enabled:/srv/www/docker/nginx/sites-enabled:cache,r
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  sse:
+    container_name: expert-overflow-server-sse
+    image: expert-overflow-server-sse:dev
+    build:
+      context: ./docker/sse
+      dockerfile: Dockerfile
+    restart: on-failure
+    environment:
+      DEBUG: "debug"
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_ALG: "HS512"
+      MERCURE_PUBLISHER_JWT_KEY: "27HshH810JJS93jJalOqey53dcbn8Drtjsw20JzxBdwosp5P"
+      MERCURE_SUBSCRIBER_JWT_ALG: "HS512"
+      MERCURE_SUBSCRIBER_JWT_KEY: "27HshH810JJS93jJalOqey53dcbn8Drtjsw20JzxBdwosp5P"
+      MERCURE_EXTRA_DIRECTIVES: |
+        anonymous 1
+        subscriptions 1
+        cors_origins "http://localhost:9000"
+        ui 1
+        demo 1
+    ports:
+      - "8001:80"
+    volumes:
+      - sse_data:/data
+      - sse_config:/config
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  minio:
+    container_name: expert-overflow-server-minio
+    image: expert-overflow-server-minio:dev
+    build:
+      context: ./docker/minio
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - '9100:9000'
+      - '9090:9090'
+    environment:
+      MINIO_ROOT_USER: 'root'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - minio_data:/data/minio
+    command: minio server /data/minio --console-address ":9090"
+
+volumes:
+  minio_data:
+    driver: local
+  mongodb_data:
+  postgres_data:
+  elasticsearch_data:
+  sse_data:
+  sse_config:
+  symfony_var:
+  symfony_vendor:
+  node_modules:

@@ -1,0 +1,6 @@
+GET {{ baseUrl }}/questions
+#Authorization: Bearer {{ accessToken }}
+Accept: application/json
+Cookie: XDEBUG_SESSION=PHPSTORM
+
+###

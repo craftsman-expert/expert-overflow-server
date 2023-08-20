@@ -1,0 +1,1 @@
+docker compose exec php php /srv/www/vendor/phpunit/phpunit/phpunit --configuration /srv/www/phpunit.xml.dist

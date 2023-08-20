@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+echo "Building..."
+docker compose build
+
+echo "Up..."
+docker compose up -d
+
+[ -d "vendor" ] || mkdir "vendor"
+echo "Copy vendor from container to this host..."
+docker compose cp php:/srv/www/vendor .
+
+docker compose ps
+
+echo "Done!"

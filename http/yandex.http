@@ -1,0 +1,5 @@
+GET https://login.yandex.ru/info?format=json&jwt_secret=1234
+Authorization: OAuth y0_AgAAAAAKZAXyAApCfAAAAADo9XOV_WtgPE4pQKuzlYxoY2_6pT9AZOw
+Accept: application/json
+
+###

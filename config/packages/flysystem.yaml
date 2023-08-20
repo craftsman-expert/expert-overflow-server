@@ -1,0 +1,49 @@
+services:
+  # see examples https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/php/example_code/s3
+  aws.s3.s3client:
+    class: Aws\S3\S3Client
+    arguments:
+      - version: '2006-03-01'
+        region: 'eu-central-1'
+        endpoint: '%env(S3_STORAGE_ENDPOINT)%'
+        use_path_style_endpoint: true
+        credentials:
+          key: '%env(S3_STORAGE_KEY)%'
+          secret: '%env(S3_STORAGE_SECRET)%'
+
+
+# Read the documentation at https://github.com/thephpleague/flysystem-bundle/blob/master/docs/1-getting-started.md
+flysystem:
+  storages:
+    default.storage:
+      adapter: 'local'
+      options:
+        directory: '%kernel.project_dir%/var/storage/default'
+
+    avatars.storage:
+      adapter: 'aws'
+      visibility: public
+      options:
+        client: 'aws.s3.s3client'
+        bucket: 'expert-overflow'
+        prefix: 'avatars'
+        streamReads: true
+
+    images.storage:
+      adapter: 'aws'
+      visibility: public
+      options:
+        client: 'aws.s3.s3client'
+        bucket: 'expert-overflow'
+        prefix: 'images'
+        streamReads: true
+
+    documents.storage:
+      adapter: 'aws'
+      visibility: public
+      options:
+        client: 'aws.s3.s3client'
+        bucket: 'expert-overflow'
+        prefix: 'documents'
+        streamReads: true
+

@@ -1,0 +1,1 @@
+docker compose exec php tools/php-cs-fixer/vendor/bin/php-cs-fixer fix $args --diff --ansi --config .php-cs-fixer.php

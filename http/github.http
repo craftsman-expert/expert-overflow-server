@@ -1,0 +1,5 @@
+GET https://api.github.com/user
+Accept: application/json
+Authorization: Bearer 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
+
+### secret_id=d1ea0bb7d1016b7c6a277a8b6db03eb2326e0b8a

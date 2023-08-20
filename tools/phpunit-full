@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+echo "Cache clear..."
+echo "======================================="
+docker compose exec php php bin/console cache:clear --env=test
+
+echo ""
+echo "Dropping database..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:database:drop --env=test --if-exists -f
+
+echo ""
+echo "Create database"
+echo "======================================="
+docker compose exec php php bin/console doctrine:database:create --env=test
+
+echo ""
+echo "Update schema..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:schema:create --env=test
+
+echo ""
+echo "Load fixtures..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:fixtures:load --env=test --no-interaction
+
+echo ""
+echo "Testing..."
+echo "======================================="
+docker compose exec php php bin/phpunit "$@"

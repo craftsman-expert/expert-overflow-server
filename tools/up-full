@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+echo "Building..."
+docker compose build
+
+echo "Up..."
+docker compose up -d
+
+[ -d "vendor" ] || mkdir "vendor"
+echo "Copy vendor from container to this host..."
+docker compose cp php:/srv/www/vendor .
+
+docker compose ps
+
+echo ""
+echo "Create database if not exists..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:database:create --if-not-exists
+
+echo ""
+echo "Update schema..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:schema:update --dump-sql -f
+
+echo ""
+echo "Load fixtures..."
+echo "======================================="
+docker compose exec php php bin/console doctrine:fixtures:load --no-interaction --purge-with-truncate
